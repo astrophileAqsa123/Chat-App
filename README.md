@@ -18,14 +18,14 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 📝 Status Feature – Post text-only status updates; contacts can like your status
 
 🛠️ Tech Stack
-Frontend: React, Redux (if used), Tailwind CSS / Material UI (optional)
+Frontend: React, Tailwind CSS 
 
 Backend: Node.js, Express.js
 
 Database: MongoDB with Mongoose
 
-Real-Time: Socket.IO or WebSockets
+Real-Time: Socket.IO 
 
-File Uploads: Cloudinary / Multer (for photo messages)
+File Uploads: Cloudinary 
 
-Authentication: JWT / OAuth (if implemented)
+Authentication: JWT 
