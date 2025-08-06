@@ -54,6 +54,8 @@ export function getReceiverSocketId(userId) {
 const io = new Server(server, {
   cors: {
     origin: [process.env.FRONTEND_URL],
+    methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
