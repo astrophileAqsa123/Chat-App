@@ -1,6 +1,6 @@
 import axios from "axios";
 
 export const axiosInstance=axios.create({
-    baseURL:"https://91e519ac-4526-419f-aa5f-4a851dcbc638-00-1g0mmns9x9f6x.sisko.replit.dev/api",
+    baseURL:"https://chat-app-production-f833.up.railway.app/api",
     withCredentials:true,
 })
