@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin:https://chat-app-chi-lilac-42.vercel.app/,
+    origin:"https://chat-app-chi-lilac-42.vercel.app",
     credentials: true,
   })
 );
