@@ -15,9 +15,28 @@ export const getUsersForSideBar = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(user.contacts);
+    // Find all users who have sent a message to the logged-in user
+    const messagesReceived = await Message.find({ receiverId: loggedInUserId })
+      .distinct("senderId");
+
+    // Filter out sender IDs that are already in contacts
+    const contactIds = user.contacts.map(c => c._id.toString());
+    const nonContactIds = messagesReceived.filter(
+      id => !contactIds.includes(id.toString())
+    );
+
+    // Fetch non-contact user details
+    const nonContactUsers = await User.find(
+      { _id: { $in: nonContactIds } },
+      "fullName email profilePic"
+    );
+
+    // Merge contacts + non-contacts (contacts first)
+    const allUsers = [...user.contacts, ...nonContactUsers];
+
+    res.status(200).json(allUsers);
   } catch (error) {
-    console.error("Error in getUsersForSidebar: ", error.message);
+    console.error("Error in getUsersForSideBar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
