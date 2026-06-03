@@ -211,73 +211,82 @@ toast.success("Status posted Successfully");
     }
   },
 
-  // Subscribe to real-time message events
-  subscribeToMessages: () => {
-    const { socket, authUser } = useAuthStore.getState();
+    subscribeToMessages: () => {
+  const { socket, authUser } = useAuthStore.getState();
 
-    socket.on("newMessage", (newMessage) => {
-      const { selectedUser, messages, unreadMessages } = get();
-      const isMessageForMe = newMessage.receiverId === authUser._id;
-      const isActiveChat =
-        selectedUser && newMessage.senderId === selectedUser._id;
+  socket.on("newMessage", (newMessage) => {
+    const { selectedUser, messages, unreadMessages, users } = get();
+    const isMessageForMe = newMessage.receiverId === authUser._id;
+    const isActiveChat = selectedUser && newMessage.senderId === selectedUser._id;
 
-      if (isMessageForMe) {
-        socket.emit("message:delivered", {
-          messageId: newMessage._id,
-          senderId: newMessage.senderId,
-        });
+    if (isMessageForMe) {
+      socket.emit("message:delivered", {
+        messageId: newMessage._id,
+        senderId: newMessage.senderId,
+      });
+
+      // Add non-contact sender to users list if not already there
+      const senderExists = users.some((u) => u._id === newMessage.senderId);
+      if (!senderExists) {
+        axiosInstance.get(`/auth/user/${newMessage.senderId}`)
+          .then((res) => {
+            set((state) => ({
+              users: [...state.users, res.data],
+            }));
+          })
+          .catch((err) => console.error("Failed to fetch sender:", err));
       }
+    }
 
-      if (isMessageForMe && isActiveChat) {
-        set({ messages: [...messages, newMessage] });
+    if (isMessageForMe && isActiveChat) {
+      set({ messages: [...messages, newMessage] });
 
-        setTimeout(() => {
-          if (get().selectedUser?._id === newMessage.senderId) {
-            socket.emit("message:read", {
-              messageId: newMessage._id,
-              senderId: newMessage.senderId,
-            });
-          }
-        }, 1500);
-      } else if (isMessageForMe) {
-        const currentUnread = unreadMessages[newMessage.senderId] || 0;
-        set({
-          unreadMessages: {
-            ...unreadMessages,
-            [newMessage.senderId]: currentUnread + 1,
-          },
-        });
-      }
-    });
+      setTimeout(() => {
+        if (get().selectedUser?._id === newMessage.senderId) {
+          socket.emit("message:read", {
+            messageId: newMessage._id,
+            senderId: newMessage.senderId,
+          });
+        }
+      }, 1500);
+    } else if (isMessageForMe) {
+      const currentUnread = unreadMessages[newMessage.senderId] || 0;
+      set({
+        unreadMessages: {
+          ...unreadMessages,
+          [newMessage.senderId]: currentUnread + 1,
+        },
+      });
+    }
+  });
 
-    socket.on("messageStatusUpdated", (data) => {
-      set((state) => ({
-        messages: state.messages.map((msg) =>
-          msg._id === data.messageId
-            ? { ...msg, status: data.status, seen: data.status === "read" }
-            : msg
-        ),
-      }));
-    });
+  socket.on("messageStatusUpdated", (data) => {
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg._id === data.messageId
+          ? { ...msg, status: data.status, seen: data.status === "read" }
+          : msg
+      ),
+    }));
+  });
 
-    socket.on("newGroupMessage", (newMessage) => {
-      const { selectedGroup, messages, unreadGroupMessages } = get();
-      const isActiveGroup =
-        selectedGroup && newMessage.group === selectedGroup._id;
+  socket.on("newGroupMessage", (newMessage) => {
+    const { selectedGroup, messages, unreadGroupMessages } = get();
+    const isActiveGroup = selectedGroup && newMessage.group === selectedGroup._id;
 
-      if (isActiveGroup) {
-        set({ messages: [...messages, newMessage] });
-      } else {
-        const currentUnread = unreadGroupMessages[newMessage.group] || 0;
-        set({
-          unreadGroupMessages: {
-            ...unreadGroupMessages,
-            [newMessage.group]: currentUnread + 1,
-          },
-        });
-      }
-    });
-  },
+    if (isActiveGroup) {
+      set({ messages: [...messages, newMessage] });
+    } else {
+      const currentUnread = unreadGroupMessages[newMessage.group] || 0;
+      set({
+        unreadGroupMessages: {
+          ...unreadGroupMessages,
+          [newMessage.group]: currentUnread + 1,
+        },
+      });
+    }
+  });
+},
 
   // Unsubscribe from all socket events
   unsubscribeFromMessages: () => {
