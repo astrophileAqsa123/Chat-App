@@ -31,8 +31,7 @@ const ChatContainer = () => {
     getMessages,
     isMessagesLoading,
     selectedUser,
-    subscribeToMessages,
-    unsubscribeFromMessages,
+   
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -42,12 +41,11 @@ const ChatContainer = () => {
     // Only fetch messages and subscribe if a user is selected
     if (selectedUser?._id) {
       getMessages(selectedUser._id);
-      subscribeToMessages();
+    
     }
 
-    // Cleanup function to unsubscribe when the component unmounts or selectedUser changes
-    return () => unsubscribeFromMessages();
-  }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]); // Dependencies
+   
+  }, [selectedUser, getMessages]); // Dependencies
 
   // Effect to scroll to the latest message
   useEffect(() => {
